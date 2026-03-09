@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, UserPlus } from 'lucide-react';
 import { users as initialUsers, User } from '@/mock-data/users';
 import DataTable, { Column } from '@/components/tables/DataTable';
@@ -23,6 +23,34 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { toast } = useToast();
 
+  // Animation variants
+  const pageVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 200,
+        damping: 20,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 300,
+        damping: 25,
+      },
+    },
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -40,16 +68,44 @@ export default function UsersPage() {
       header: 'User',
       sortable: true,
       render: (user) => (
-        <div className="flex items-center gap-3">
-          <Avatar className="w-8 h-8">
-            <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback>{user.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
-          </Avatar>
+        <motion.div
+          className="flex items-center gap-3"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <motion.div
+            whileHover={{
+              scale: 1.1,
+              rotate: 5,
+              transition: { type: "spring" as const, stiffness: 300 }
+            }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarFallback>{user.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
+            </Avatar>
+          </motion.div>
           <div>
-            <p className="font-medium">{user.name}</p>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <motion.p
+              className="font-medium"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              {user.name}
+            </motion.p>
+            <motion.p
+              className="text-xs text-muted-foreground"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              {user.email}
+            </motion.p>
           </div>
-        </div>
+        </motion.div>
       ),
     },
     {
@@ -57,9 +113,18 @@ export default function UsersPage() {
       header: 'Role',
       sortable: true,
       render: (user) => (
-        <Badge variant="outline" className="font-normal">
-          {user.role}
-        </Badge>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Badge
+            variant="outline"
+            className="font-normal"
+          >
+            {user.role}
+          </Badge>
+        </motion.div>
       ),
     },
     {
@@ -72,7 +137,14 @@ export default function UsersPage() {
       header: 'Status',
       sortable: true,
       render: (user) => (
-        <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          whileHover={{ scale: 1.05 }}
+        >
+          <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
+        </motion.div>
       ),
     },
     {
@@ -90,7 +162,7 @@ export default function UsersPage() {
   const handleCreate = () => {
     const newUser: User = {
       id: String(users.length + 1),
-      ...formData,
+      ...formData as User,
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.name.replace(' ', '')}`,
       joinDate: new Date().toISOString().split('T')[0],
       lastActive: new Date().toISOString(),
@@ -103,7 +175,7 @@ export default function UsersPage() {
 
   const handleEdit = () => {
     if (!selectedUser) return;
-    setUsers(users.map((u) => (u.id === selectedUser.id ? { ...u, ...formData } : u)));
+    setUsers(users.map((u) => (u.id === selectedUser.id ? { ...u, ...formData as User } : u)));
     setIsEditOpen(false);
     setSelectedUser(null);
     resetForm();
@@ -163,50 +235,77 @@ export default function UsersPage() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      variants={pageVariants}
+      initial="hidden"
+      animate="visible"
       className="space-y-6"
     >
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Users</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <motion.div variants={itemVariants}>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Users</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </motion.div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <motion.div
+        variants={itemVariants}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Users</h1>
-          <p className="text-muted-foreground">Manage your team members and their roles.</p>
+          <motion.h1
+            className="text-2xl font-bold tracking-tight"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            Users
+          </motion.h1>
+          <motion.p
+            className="text-muted-foreground"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            Manage your team members and their roles.
+          </motion.p>
         </div>
-      </div>
+      </motion.div>
 
-      <DataTable
-        data={users}
-        columns={columns}
-        searchPlaceholder="Search users..."
-        filters={[
-          { key: 'status', label: 'Status', options: ['Active', 'Inactive', 'Pending', 'Suspended'] },
-          { key: 'role', label: 'Role', options: ['Admin', 'Manager', 'Developer', 'Designer', 'Analyst', 'Support'] },
-        ]}
-        onView={openView}
-        onEdit={openEdit}
-        onDelete={openDelete}
-        bulkActions={[
-          { label: 'Delete', onClick: handleBulkDelete },
-        ]}
-        actions={
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add User
-          </Button>
-        }
-      />
+      <motion.div variants={itemVariants}>
+        <DataTable
+          data={users}
+          columns={columns}
+          searchPlaceholder="Search users..."
+          filters={[
+            { key: 'status', label: 'Status', options: ['Active', 'Inactive', 'Pending', 'Suspended'] },
+            { key: 'role', label: 'Role', options: ['Admin', 'Manager', 'Developer', 'Designer', 'Analyst', 'Support'] },
+          ]}
+          onView={openView}
+          onEdit={openEdit}
+          onDelete={openDelete}
+          bulkActions={[
+            { label: 'Delete', onClick: handleBulkDelete },
+          ]}
+          actions={
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button onClick={() => setIsCreateOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add User
+              </Button>
+            </motion.div>
+          }
+        />
+      </motion.div>
 
       {/* Create Modal */}
       <Modal

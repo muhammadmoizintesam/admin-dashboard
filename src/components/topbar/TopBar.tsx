@@ -98,7 +98,7 @@ export default function TopBar() {
       animate={{ y: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
     >
-      <div className="flex h-14 items-center px-36 lg:px-40">
+      <div className="flex h-16 items-center px-36 lg:px-40">
         {/* Logo */}
         <motion.div
           className="mr-4 flex"

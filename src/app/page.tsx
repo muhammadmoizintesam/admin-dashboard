@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { useRef } from 'react';
 import {
   DollarSign,
   Users,
@@ -31,6 +32,60 @@ import { revenueData, serverMetrics } from '@/mock-data/analytics';
 export default function DashboardPage() {
   const { settings } = useSettings();
   const { widgetVisibility } = settings;
+
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 100,
+        damping: 10,
+      },
+    },
+  };
+
+  const slideInFromLeft = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 120,
+        damping: 15,
+      },
+    },
+  };
+
+  const scaleIn = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 200,
+        damping: 20,
+      },
+    },
+  };
 
   const stats = [
     {
@@ -69,72 +124,222 @@ export default function DashboardPage() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      ref={ref}
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
       className="space-y-6"
     >
       {/* Breadcrumb */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Dashboard</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <motion.div variants={slideInFromLeft}>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Dashboard</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </motion.div>
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <motion.div
+        variants={slideInFromLeft}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here&apos;s an overview of your platform.</p>
+          <motion.h1
+            className="text-2xl font-bold tracking-tight"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 150 }}
+          >
+            Dashboard
+          </motion.h1>
+          <motion.p
+            className="text-muted-foreground"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, type: "spring", stiffness: 150 }}
+          >
+            Welcome back! Here&apos;s an overview of your platform.
+          </motion.p>
         </div>
-        <div className="flex items-center gap-2">
+        <motion.div
+          className="flex items-center gap-2"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5, type: "spring", stiffness: 150 }}
+        >
           <span className="text-sm text-muted-foreground">Last updated: {new Date().toLocaleTimeString()}</span>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Stats Grid */}
       {widgetVisibility.revenueStats && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          variants={itemVariants}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {stats.map((stat, index) => (
-            <StatCard key={stat.title} {...stat} index={index} />
+            <motion.div
+              key={stat.title}
+              variants={scaleIn}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+                transition: { type: "spring", stiffness: 300, damping: 20 }
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <StatCard {...stat} index={index} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Charts Row 1 */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <motion.div
+        variants={itemVariants}
+        className="grid gap-6 lg:grid-cols-2"
+      >
         {widgetVisibility.userGrowth && (
-          <ChartCard title="User Growth" subtitle="Monthly user acquisition trends">
-            <UserGrowthChart height={280} />
-          </ChartCard>
+          <motion.div
+            variants={scaleIn}
+            whileHover={{
+              scale: 1.02,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
+              transition: { type: "spring", stiffness: 200, damping: 25 }
+            }}
+          >
+            <ChartCard title="User Growth" subtitle="Monthly user acquisition trends">
+              <UserGrowthChart height={280} />
+            </ChartCard>
+          </motion.div>
         )}
         {widgetVisibility.performance && (
-          <ChartCard title="Revenue Overview" subtitle="Monthly revenue performance">
-            <RevenueChart height={280} />
-          </ChartCard>
+          <motion.div
+            variants={scaleIn}
+            whileHover={{
+              scale: 1.02,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
+              transition: { type: "spring", stiffness: 200, damping: 25 }
+            }}
+          >
+            <ChartCard title="Revenue Overview" subtitle="Monthly revenue performance">
+              <RevenueChart height={280} />
+            </ChartCard>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Charts Row 2 */}
       {widgetVisibility.performance && (
-        <ChartCard title="System Performance" subtitle="Real-time server metrics">
-          <PerformanceChart height={200} />
-        </ChartCard>
+        <motion.div
+          variants={scaleIn}
+          whileHover={{
+            scale: 1.01,
+            boxShadow: "0 25px 50px rgba(0,0,0,0.1)",
+            transition: { type: "spring", stiffness: 150, damping: 30 }
+          }}
+        >
+          <ChartCard title="System Performance" subtitle="Real-time server metrics">
+            <PerformanceChart height={200} />
+          </ChartCard>
+        </motion.div>
       )}
 
       {/* Widgets Row */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {widgetVisibility.recentUsers && <RecentUsersWidget />}
-        {widgetVisibility.activityFeed && <ActivityFeedWidget />}
-        {widgetVisibility.taskOverview && <TaskOverviewWidget />}
-      </div>
+      <motion.div
+        variants={itemVariants}
+        className="grid gap-6 lg:grid-cols-3"
+      >
+        <AnimatePresence>
+          {widgetVisibility.recentUsers && (
+            <motion.div
+              variants={scaleIn}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              whileHover={{
+                scale: 1.03,
+                boxShadow: "0 15px 35px rgba(0,0,0,0.12)",
+                transition: { type: "spring", stiffness: 250, damping: 20 }
+              }}
+            >
+              <RecentUsersWidget />
+            </motion.div>
+          )}
+          {widgetVisibility.activityFeed && (
+            <motion.div
+              variants={scaleIn}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              whileHover={{
+                scale: 1.03,
+                boxShadow: "0 15px 35px rgba(0,0,0,0.12)",
+                transition: { type: "spring", stiffness: 250, damping: 20 }
+              }}
+            >
+              <ActivityFeedWidget />
+            </motion.div>
+          )}
+          {widgetVisibility.taskOverview && (
+            <motion.div
+              variants={scaleIn}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              whileHover={{
+                scale: 1.03,
+                boxShadow: "0 15px 35px rgba(0,0,0,0.12)",
+                transition: { type: "spring", stiffness: 250, damping: 20 }
+              }}
+            >
+              <TaskOverviewWidget />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Status Widgets */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {widgetVisibility.serverStatus && <ServerStatusWidget />}
-        {widgetVisibility.systemHealth && <SystemHealthWidget />}
-      </div>
+      <motion.div
+        variants={itemVariants}
+        className="grid gap-6 lg:grid-cols-2"
+      >
+        <AnimatePresence>
+          {widgetVisibility.serverStatus && (
+            <motion.div
+              variants={scaleIn}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              whileHover={{
+                scale: 1.02,
+                boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+                transition: { type: "spring", stiffness: 200, damping: 25 }
+              }}
+            >
+              <ServerStatusWidget />
+            </motion.div>
+          )}
+          {widgetVisibility.systemHealth && (
+            <motion.div
+              variants={scaleIn}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              whileHover={{
+                scale: 1.02,
+                boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+                transition: { type: "spring", stiffness: 200, damping: 25 }
+              }}
+            >
+              <SystemHealthWidget />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </motion.div>
   );
 }

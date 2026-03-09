@@ -44,7 +44,7 @@ export default function RevenueChart({ height = 300 }: RevenueChartProps) {
             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
           }}
           labelStyle={{ color: 'var(--foreground)' }}
-          formatter={(value: number) => [`$${value?.toLocaleString() || 0}`, '']}
+          formatter={(value: any) => [`$${Number(value)?.toLocaleString() || 0}`, '']}
         />
         <Legend />
         <Bar

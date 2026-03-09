@@ -163,6 +163,69 @@ export default function DataTable<T extends { id: string }>({
     setCurrentPage(1);
   };
 
+  // Animation variants
+  const tableRowVariants = {
+    hidden: { opacity: 0, x: -20, scale: 0.95 },
+    visible: (index: number) => ({
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 200,
+        damping: 20,
+        delay: index * 0.05,
+      },
+    }),
+    hover: {
+      scale: 1.02,
+      x: 5,
+      backgroundColor: "hsl(var(--muted)/0.3)",
+      transition: {
+        type: "spring" as const,
+        stiffness: 300,
+        damping: 25,
+      },
+    },
+    exit: {
+      opacity: 0,
+      x: 20,
+      scale: 0.95,
+      transition: {
+        type: "spring" as const,
+        stiffness: 400,
+        damping: 30,
+      },
+    },
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 200,
+        damping: 20,
+      },
+    },
+  };
+
+  const paginationVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 200,
+        damping: 20,
+        delay: 0.3,
+      },
+    },
+  };
+
   return (
     <div className="space-y-4">
       {/* Toolbar */}
@@ -224,21 +287,35 @@ export default function DataTable<T extends { id: string }>({
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-border overflow-hidden">
+      <motion.div
+        variants={headerVariants}
+        initial="hidden"
+        animate="visible"
+        className="rounded-lg border border-border overflow-hidden"
+      >
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-muted/50 border-b border-border">
+            <motion.thead
+              className="bg-muted/50 border-b border-border"
+              variants={headerVariants}
+            >
               <tr>
                 {bulkActions && (
                   <th className="w-12 px-4 py-3">
-                    <Checkbox
-                      checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
-                      onCheckedChange={handleSelectAll}
-                    />
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="inline-block"
+                    >
+                      <Checkbox
+                        checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </motion.div>
                   </th>
                 )}
                 {columns.map((column) => (
-                  <th
+                  <motion.th
                     key={String(column.key)}
                     className={cn(
                       'px-4 py-3 text-left text-sm font-medium text-muted-foreground',
@@ -246,60 +323,102 @@ export default function DataTable<T extends { id: string }>({
                     )}
                     style={{ width: column.width }}
                     onClick={() => column.sortable && handleSort(String(column.key))}
+                    whileHover={{
+                      scale: 1.02,
+                      color: 'hsl(var(--foreground))',
+                      transition: { type: "spring" as const, stiffness: 300 }
+                    }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     <div className="flex items-center gap-1">
                       {column.header}
                       {column.sortable && sortKey === column.key && (
-                        sortDirection === 'asc' ? (
-                          <ChevronUp className="w-4 h-4" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
-                        )
+                        <motion.div
+                          animate={{
+                            rotate: sortDirection === 'asc' ? 0 : 180,
+                            transition: { type: "spring" as const, stiffness: 300 }
+                          }}
+                        >
+                          {sortDirection === 'asc' ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </motion.div>
                       )}
                     </div>
-                  </th>
+                  </motion.th>
                 ))}
                 {(onView || onEdit || onDelete) && (
                   <th className="w-12 px-4 py-3"></th>
                 )}
               </tr>
-            </thead>
+            </motion.thead>
             <tbody className="divide-y divide-border">
               <AnimatePresence mode="popLayout">
                 {paginatedData.map((item, index) => (
                   <motion.tr
                     key={item.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    custom={index}
+                    variants={tableRowVariants}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover="hover"
+                    exit="exit"
+                    layout
                     className={cn(
-                      'bg-card hover:bg-muted/50 transition-colors',
+                      'bg-card hover:bg-muted/50 transition-colors cursor-pointer relative',
                       onRowClick && 'cursor-pointer'
                     )}
                     onClick={() => onRowClick?.(item)}
                   >
+                    {/* Row highlight effect */}
+                    <motion.div
+                      className="absolute inset-0 bg-primary/5 pointer-events-none"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    />
+
                     {bulkActions && (
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={selectedIds.includes(item.id)}
-                          onCheckedChange={() => handleSelectItem(item.id)}
-                        />
+                      <td className="px-4 py-3 relative z-10" onClick={(e) => e.stopPropagation()}>
+                        <motion.div
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="inline-block"
+                        >
+                          <Checkbox
+                            checked={selectedIds.includes(item.id)}
+                            onCheckedChange={() => handleSelectItem(item.id)}
+                          />
+                        </motion.div>
                       </td>
                     )}
                     {columns.map((column) => (
-                      <td key={String(column.key)} className="px-4 py-3 text-sm">
-                        {column.render
-                          ? column.render(item)
-                          : String((item as Record<string, unknown>)[column.key as string] ?? '')}
+                      <td key={String(column.key)} className="px-4 py-3 text-sm relative z-10">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 + 0.1 }}
+                        >
+                          {column.render
+                            ? column.render(item)
+                            : String((item as Record<string, unknown>)[column.key as string] ?? '')}
+                        </motion.div>
                       </td>
                     ))}
                     {(onView || onEdit || onDelete) && (
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-3 relative z-10" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
+                            <motion.div
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </motion.div>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {onView && (
@@ -345,20 +464,35 @@ export default function DataTable<T extends { id: string }>({
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/30">
-            <div className="text-sm text-muted-foreground">
+          <motion.div
+            variants={paginationVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/30"
+          >
+            <motion.div
+              className="text-sm text-muted-foreground"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
               Showing {(currentPage - 1) * pageSize + 1} to{' '}
               {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length} results
-            </div>
+            </motion.div>
             <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+              </motion.div>
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum;
                 if (totalPages <= 5) {
@@ -371,28 +505,41 @@ export default function DataTable<T extends { id: string }>({
                   pageNum = currentPage - 2 + i;
                 }
                 return (
-                  <Button
+                  <motion.div
                     key={pageNum}
-                    variant={currentPage === pageNum ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setCurrentPage(pageNum)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + i * 0.05 }}
                   >
-                    {pageNum}
-                  </Button>
+                    <Button
+                      variant={currentPage === pageNum ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  </motion.div>
                 );
               })}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

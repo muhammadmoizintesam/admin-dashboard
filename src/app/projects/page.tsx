@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, FolderKanban } from 'lucide-react';
 import { projects as initialProjects, Project } from '@/mock-data/projects';
 import DataTable, { Column } from '@/components/tables/DataTable';
@@ -22,6 +22,34 @@ export default function ProjectsPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const { toast } = useToast();
+
+  // Animation variants
+  const pageVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 200,
+        damping: 20,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 300,
+        damping: 25,
+      },
+    },
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -91,9 +119,20 @@ export default function ProjectsPage() {
   const handleCreate = () => {
     const newProject: Project = {
       id: String(projects.length + 1),
-      ...formData,
+      name: formData.name,
+      description: formData.description,
+      status: formData.status as 'Planning' | 'In Progress' | 'On Hold' | 'Completed' | 'Review',
+      priority: formData.priority as 'Medium' | 'Low' | 'High' | 'Critical',
+      team: formData.team,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
       budget: Number(formData.budget) || 0,
       progress: 0,
+      teamId: '',
+      lead: '',
+      spent: 0,
+      tasksTotal: 0,
+      tasksCompleted: 0,
       members: [],
     };
     setProjects([newProject, ...projects]);
@@ -104,7 +143,17 @@ export default function ProjectsPage() {
 
   const handleEdit = () => {
     if (!selectedProject) return;
-    setProjects(projects.map((p) => (p.id === selectedProject.id ? { ...p, ...formData, budget: Number(formData.budget) || 0 } : p)));
+    setProjects(projects.map((p) => (p.id === selectedProject.id ? {
+      ...p,
+      name: formData.name,
+      description: formData.description,
+      status: formData.status as 'Planning' | 'In Progress' | 'On Hold' | 'Completed' | 'Review',
+      priority: formData.priority as 'Medium' | 'Low' | 'High' | 'Critical',
+      team: formData.team,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      budget: Number(formData.budget) || 0
+    } : p)));
     setIsEditOpen(false);
     setSelectedProject(null);
     resetForm();

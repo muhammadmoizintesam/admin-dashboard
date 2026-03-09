@@ -1,33 +1,26 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  ArrowRight,
-  Sparkles,
-  Shield,
-  Zap
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { theme } = useTheme();
   const { login, isLoggedIn, isLoading: authLoading } = useAuth();
-  const [showPassword, setShowPassword] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [signupEmail, setSignupEmail] = React.useState('');
+  const [signupUsername, setSignupUsername] = React.useState('');
+  const [signupPassword, setSignupPassword] = React.useState('');
+  const [confirmTerms, setConfirmTerms] = React.useState(false);
+  const [loginUsername, setLoginUsername] = React.useState('');
+  const [loginPassword, setLoginPassword] = React.useState('');
+
+  const [currentView, setCurrentView] = React.useState<'login' | 'signup'>('login');
+
+  const slideBoxRef = useRef<HTMLDivElement>(null);
+  const topLayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
@@ -38,267 +31,1289 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    // Use AuthContext login method
-    const success = await login(email, password);
-
+    const success = await login(loginUsername, loginPassword);
     if (success) {
       router.push('/');
     }
     setIsLoading(false);
   };
 
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle signup logic here
+    console.log('Signup:', { signupEmail, signupUsername, signupPassword, confirmTerms });
+  };
+
+  const slideToSignup = () => {
+    setCurrentView('signup');
+    if (slideBoxRef.current && topLayerRef.current) {
+      slideBoxRef.current.style.transition = 'margin-left 0.6s ease';
+      topLayerRef.current.style.transition = 'margin-left 0.6s ease';
+      slideBoxRef.current.style.marginLeft = '0%';
+      topLayerRef.current.style.marginLeft = '100%';
+    }
+  };
+
+  const slideToLogin = () => {
+    setCurrentView('login');
+    if (slideBoxRef.current && topLayerRef.current) {
+      slideBoxRef.current.style.transition = 'margin-left 0.6s ease';
+      topLayerRef.current.style.transition = 'margin-left 0.6s ease';
+      if (typeof window !== 'undefined' && window.innerWidth > 769) {
+        slideBoxRef.current.style.marginLeft = '50%';
+      } else {
+        slideBoxRef.current.style.marginLeft = '20%';
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen w-full flex" style={{ backgroundColor: '#ffffff' }}>
-      {/* Left Side - Form */}
-      <div className="flex-1 flex flex-col justify-center items-center p-8 lg:p-12" style={{ backgroundColor: '#ffffff' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md space-y-8"
-        >
-          {/* Logo */}
-          <motion.div
-            className="flex items-center gap-3 justify-center lg:justify-start"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          >
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="text-primary-foreground font-bold text-xl">S</span>
-            </div>
-            <span className="text-2xl font-bold text-foreground">SaaSify</span>
-          </motion.div>
+    <>
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,600');
+        
+        body {
+          margin: 0;
+          height: 100%;
+          overflow: hidden;
+          width: 100% !important;
+          box-sizing: border-box;
+          font-family: "Roboto", sans-serif;
+        }
 
-          {/* Header */}
-          <div className="text-center lg:text-left space-y-2">
-            <motion.h1
-              className="text-3xl lg:text-4xl font-bold text-foreground"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              Welcome back
-            </motion.h1>
-            <motion.p
-              className="text-muted-foreground"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              Enter your credentials to access your account
-            </motion.p>
-          </div>
+        .backRight {
+          position: absolute;
+          right: 0;
+          width: 50%;
+          height: 100%;
+          background: #03A9F4;
+        }
 
-          {/* Form */}
-          <motion.form
-            onSubmit={handleLogin}
-            className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="admin@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 bg-background border-input focus:border-primary focus:ring-primary"
-                  required
-                />
-              </div>
-            </div>
+        .backLeft {
+          position: absolute;
+          left: 0;
+          width: 50%;
+          height: 100%;
+          background: #673AB7;
+        }
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-foreground">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 bg-background border-input focus:border-primary focus:ring-primary"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
+        #back {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          z-index: -999;
+        }
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
-                <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                  Remember me
-                </Label>
-              </div>
-              <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">
-                Forgot password?
-              </a>
-            </div>
+        .animated-shapes {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 10;
+          overflow: hidden;
+        }
 
-            <Button
-              type="submit"
-              className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <motion.div
-                  className="flex items-center gap-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Signing in...
-                </motion.div>
-              ) : (
-                <span className="flex items-center gap-2">
-                  Sign in <ArrowRight className="w-5 h-5" />
-                </span>
-              )}
-            </Button>
-          </motion.form>
+        .shape {
+          position: absolute;
+          border: 2px solid rgba(255, 255, 255, 0.5);
+          animation: float-rotate 30s infinite ease-in-out;
+          transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
+          cursor: pointer;
+        }
 
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
+        .shape:hover {
+          transform: scale(1.25) !important;
+          z-index: 100;
+          border-color: rgba(255, 255, 255, 0.8);
+          box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+        }
 
-          {/* Social Login */}
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="h-12 hover:bg-accent">
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-              </svg>
-              Google
-            </Button>
-            <Button variant="outline" className="h-12 hover:bg-accent">
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-              </svg>
-              GitHub
-            </Button>
-          </div>
+        .shape:hover ~ .shape {
+          opacity: 0.3;
+          transform: scale(0.8);
+        }
 
-          {/* Footer */}
-          <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
-            <a href="#" className="text-primary hover:text-primary/80 transition-colors font-semibold">
-              Sign up
-            </a>
-          </p>
-        </motion.div>
+        .shape1 {
+          width: 56px;
+          height: 56px;
+          top: 5%;
+          left: 8%;
+          transform: rotate(0deg);
+          border-radius: 5%;
+          animation-delay: 0s;
+          animation-duration: 22s;
+        }
+
+        .shape2 {
+          width: 150px;
+          height: 150px;
+          top: 12%;
+          left: 75%;
+          transform: rotate(45deg);
+          border-radius: 50%;
+          animation-delay: 0.5s;
+          animation-duration: 25s;
+        }
+
+        .shape3 {
+          width: 81px;
+          height: 81px;
+          top: 22%;
+          left: 18%;
+          transform: rotate(30deg);
+          border-radius: 0%;
+          animation-delay: 1s;
+          animation-duration: 20s;
+        }
+
+        .shape4 {
+          width: 113px;
+          height: 113px;
+          top: 35%;
+          left: 82%;
+          transform: rotate(60deg);
+          border-radius: 25%;
+          animation-delay: 1.5s;
+          animation-duration: 28s;
+        }
+
+        .shape5 {
+          width: 94px;
+          height: 94px;
+          top: 48%;
+          left: 28%;
+          transform: rotate(90deg);
+          border-radius: 50%;
+          animation-delay: 2s;
+          animation-duration: 23s;
+        }
+
+        .shape6 {
+          width: 69px;
+          height: 69px;
+          top: 58%;
+          left: 52%;
+          transform: rotate(15deg);
+          border-radius: 15%;
+          animation-delay: 2.5s;
+          animation-duration: 21s;
+        }
+
+        .shape7 {
+          width: 131px;
+          height: 131px;
+          top: 68%;
+          left: 65%;
+          transform: rotate(75deg);
+          border-radius: 40%;
+          animation-delay: 3s;
+          animation-duration: 26s;
+        }
+
+        .shape8 {
+          width: 88px;
+          height: 88px;
+          top: 78%;
+          left: 15%;
+          transform: rotate(120deg);
+          border-radius: 0%;
+          animation-delay: 3.5s;
+          animation-duration: 24s;
+        }
+
+        .shape9 {
+          width: 106px;
+          height: 106px;
+          top: 8%;
+          left: 88%;
+          transform: rotate(105deg);
+          border-radius: 30%;
+          animation-delay: 4s;
+          animation-duration: 22s;
+        }
+
+        .shape10 {
+          width: 75px;
+          height: 75px;
+          top: 18%;
+          left: 68%;
+          transform: rotate(135deg);
+          border-radius: 50%;
+          animation-delay: 4.5s;
+          animation-duration: 19s;
+        }
+
+        .shape11 {
+          width: 119px;
+          height: 119px;
+          top: 28%;
+          left: 38%;
+          transform: rotate(165deg);
+          border-radius: 20%;
+          animation-delay: 5s;
+          animation-duration: 27s;
+        }
+
+        .shape12 {
+          width: 63px;
+          height: 63px;
+          top: 38%;
+          left: 78%;
+          transform: rotate(195deg);
+          border-radius: 35%;
+          animation-delay: 5.5s;
+          animation-duration: 21s;
+        }
+
+        .shape13 {
+          width: 138px;
+          height: 138px;
+          top: 52%;
+          left: 42%;
+          transform: rotate(225deg);
+          border-radius: 45%;
+          animation-delay: 6s;
+          animation-duration: 25s;
+        }
+
+        .shape14 {
+          width: 60px;
+          height: 60px;
+          top: 62%;
+          left: 25%;
+          transform: rotate(255deg);
+          border-radius: 10%;
+          animation-delay: 6.5s;
+          animation-duration: 18s;
+        }
+
+        .shape15 {
+          width: 156px;
+          height: 156px;
+          top: 72%;
+          left: 58%;
+          transform: rotate(285deg);
+          border-radius: 50%;
+          animation-delay: 7s;
+          animation-duration: 29s;
+        }
+
+        .shape16 {
+          width: 90px;
+          height: 90px;
+          top: 82%;
+          left: 12%;
+          transform: rotate(315deg);
+          border-radius: 25%;
+          animation-delay: 7.5s;
+          animation-duration: 23s;
+        }
+
+        .shape17 {
+          width: 73px;
+          height: 73px;
+          top: 92%;
+          left: 85%;
+          transform: rotate(345deg);
+          border-radius: 15%;
+          animation-delay: 8s;
+          animation-duration: 26s;
+        }
+
+        .shape18 {
+          width: 110px;
+          height: 110px;
+          top: 15%;
+          left: 45%;
+          transform: rotate(30deg);
+          border-radius: 40%;
+          animation-delay: 8.5s;
+          animation-duration: 20s;
+        }
+
+        .shape19 {
+          width: 78px;
+          height: 78px;
+          top: 25%;
+          left: 35%;
+          transform: rotate(150deg);
+          border-radius: 30%;
+          animation-delay: 9s;
+          animation-duration: 24s;
+        }
+
+        .shape20 {
+          width: 123px;
+          height: 123px;
+          top: 42%;
+          left: 72%;
+          transform: rotate(270deg);
+          border-radius: 20%;
+          animation-delay: 9.5s;
+          animation-duration: 28s;
+        }
+
+        .shape21 {
+          width: 50px;
+          height: 50px;
+          top: 55%;
+          left: 5%;
+          transform: rotate(210deg);
+          border-radius: 8%;
+          animation-delay: 10s;
+          animation-duration: 19s;
+        }
+
+        .shape22 {
+          width: 163px;
+          height: 163px;
+          top: 65%;
+          left: 92%;
+          transform: rotate(240deg);
+          border-radius: 60%;
+          animation-delay: 10.5s;
+          animation-duration: 30s;
+        }
+
+        .shape23 {
+          width: 65px;
+          height: 65px;
+          top: 75%;
+          left: 32%;
+          transform: rotate(300deg);
+          border-radius: 12%;
+          animation-delay: 11s;
+          animation-duration: 22s;
+        }
+
+        .shape24 {
+          width: 98px;
+          height: 98px;
+          top: 85%;
+          left: 62%;
+          transform: rotate(330deg);
+          border-radius: 28%;
+          animation-delay: 11.5s;
+          animation-duration: 25s;
+        }
+
+        .shape25 {
+          width: 115px;
+          height: 115px;
+          top: 2%;
+          left: 22%;
+          transform: rotate(18deg);
+          border-radius: 38%;
+          animation-delay: 12s;
+          animation-duration: 27s;
+        }
+
+        .shape26 {
+          width: 58px;
+          height: 58px;
+          top: 32%;
+          left: 8%;
+          transform: rotate(72deg);
+          border-radius: 6%;
+          animation-delay: 12.5s;
+          animation-duration: 21s;
+        }
+
+        .shape27 {
+          width: 135px;
+          height: 135px;
+          top: 45%;
+          left: 95%;
+          transform: rotate(108deg);
+          border-radius: 55%;
+          animation-delay: 13s;
+          animation-duration: 29s;
+        }
+
+        .shape28 {
+          width: 68px;
+          height: 68px;
+          top: 56%;
+          left: 48%;
+          transform: rotate(144deg);
+          border-radius: 14%;
+          animation-delay: 13.5s;
+          animation-duration: 23s;
+        }
+
+        .shape29 {
+          width: 103px;
+          height: 103px;
+          top: 67%;
+          left: 28%;
+          transform: rotate(180deg);
+          border-radius: 32%;
+          animation-delay: 14s;
+          animation-duration: 26s;
+        }
+
+        .shape30 {
+          width: 55px;
+          height: 55px;
+          top: 77%;
+          left: 78%;
+          transform: rotate(216deg);
+          border-radius: 4%;
+          animation-delay: 14.5s;
+          animation-duration: 20s;
+        }
+
+        .shape31 {
+          width: 144px;
+          height: 144px;
+          top: 88%;
+          left: 18%;
+          transform: rotate(252deg);
+          border-radius: 48%;
+          animation-delay: 15s;
+          animation-duration: 31s;
+        }
+
+        .shape32 {
+          width: 70px;
+          height: 70px;
+          top: 98%;
+          left: 55%;
+          transform: rotate(288deg);
+          border-radius: 16%;
+          animation-delay: 15.5s;
+          animation-duration: 24s;
+        }
+
+        .shape33 {
+          width: 93px;
+          height: 93px;
+          top: 7%;
+          left: 32%;
+          transform: rotate(324deg);
+          border-radius: 26%;
+          animation-delay: 16s;
+          animation-duration: 28s;
+        }
+
+        .shape34 {
+          width: 108px;
+          height: 108px;
+          top: 17%;
+          left: 58%;
+          transform: rotate(36deg);
+          border-radius: 36%;
+          animation-delay: 16.5s;
+          animation-duration: 22s;
+        }
+
+        .shape35 {
+          width: 53px;
+          height: 53px;
+          top: 27%;
+          left: 12%;
+          transform: rotate(84deg);
+          border-radius: 2%;
+          animation-delay: 17s;
+          animation-duration: 19s;
+        }
+
+        .shape36 {
+          width: 125px;
+          height: 125px;
+          top: 37%;
+          left: 85%;
+          transform: rotate(126deg);
+          border-radius: 42%;
+          animation-delay: 17.5s;
+          animation-duration: 30s;
+        }
+
+        .shape37 {
+          width: 80px;
+          height: 80px;
+          top: 47%;
+          left: 22%;
+          transform: rotate(168deg);
+          border-radius: 18%;
+          animation-delay: 18s;
+          animation-duration: 25s;
+        }
+
+        .shape38 {
+          width: 95px;
+          height: 95px;
+          top: 57%;
+          left: 92%;
+          transform: rotate(198deg);
+          border-radius: 22%;
+          animation-delay: 18.5s;
+          animation-duration: 27s;
+        }
+
+        .shape39 {
+          width: 118px;
+          height: 118px;
+          top: 70%;
+          left: 52%;
+          transform: rotate(234deg);
+          border-radius: 34%;
+          animation-delay: 19s;
+          animation-duration: 29s;
+        }
+
+        .shape40 {
+          width: 48px;
+          height: 48px;
+          top: 80%;
+          left: 8%;
+          transform: rotate(264deg);
+          border-radius: 0%;
+          animation-delay: 19.5s;
+          animation-duration: 21s;
+        }
+
+        .shape41 {
+          width: 140px;
+          height: 140px;
+          top: 90%;
+          left: 75%;
+          transform: rotate(294deg);
+          border-radius: 46%;
+          animation-delay: 20s;
+          animation-duration: 32s;
+        }
+
+        .shape42 {
+          width: 85px;
+          height: 85px;
+          top: 3%;
+          left: 42%;
+          transform: rotate(318deg);
+          border-radius: 24%;
+          animation-delay: 20.5s;
+          animation-duration: 23s;
+        }
+
+        .shape43 {
+          width: 100px;
+          height: 100px;
+          top: 13%;
+          left: 68%;
+          transform: rotate(342deg);
+          border-radius: 28%;
+          animation-delay: 21s;
+          animation-duration: 26s;
+        }
+
+        .shape44 {
+          width: 65px;
+          height: 65px;
+          top: 23%;
+          left: 28%;
+          transform: rotate(24deg);
+          border-radius: 12%;
+          animation-delay: 21.5s;
+          animation-duration: 20s;
+        }
+
+        .shape45 {
+          width: 120px;
+          height: 120px;
+          top: 33%;
+          left: 88%;
+          transform: rotate(66deg);
+          border-radius: 40%;
+          animation-delay: 22s;
+          animation-duration: 28s;
+        }
+
+        .shape46 {
+          width: 60px;
+          height: 60px;
+          top: 43%;
+          left: 18%;
+          transform: rotate(96deg);
+          border-radius: 8%;
+          animation-delay: 22.5s;
+          animation-duration: 24s;
+        }
+
+        .shape47 {
+          width: 130px;
+          height: 130px;
+          top: 53%;
+          left: 62%;
+          transform: rotate(132deg);
+          border-radius: 44%;
+          animation-delay: 23s;
+          animation-duration: 31s;
+        }
+
+        .shape48 {
+          width: 83px;
+          height: 83px;
+          top: 63%;
+          left: 32%;
+          transform: rotate(162deg);
+          border-radius: 20%;
+          animation-delay: 23.5s;
+          animation-duration: 25s;
+        }
+
+        .shape49 {
+          width: 105px;
+          height: 105px;
+          top: 73%;
+          left: 82%;
+          transform: rotate(192deg);
+          border-radius: 32%;
+          animation-delay: 24s;
+          animation-duration: 29s;
+        }
+
+        .shape50 {
+          width: 45px;
+          height: 45px;
+          top: 83%;
+          left: 48%;
+          transform: rotate(222deg);
+          border-radius: 0%;
+          animation-delay: 24.5s;
+          animation-duration: 22s;
+        }
+
+        .shape51 {
+          width: 58px;
+          height: 58px;
+          top: 6%;
+          left: 25%;
+          transform: rotate(18deg);
+          border-radius: 12%;
+          animation-delay: 25s;
+          animation-duration: 23s;
+        }
+
+        .shape52 {
+          width: 142px;
+          height: 142px;
+          top: 16%;
+          left: 88%;
+          transform: rotate(54deg);
+          border-radius: 48%;
+          animation-delay: 25.5s;
+          animation-duration: 30s;
+        }
+
+        .shape53 {
+          width: 67px;
+          height: 67px;
+          top: 26%;
+          left: 12%;
+          transform: rotate(90deg);
+          border-radius: 8%;
+          animation-delay: 26s;
+          animation-duration: 21s;
+        }
+
+        .shape54 {
+          width: 95px;
+          height: 95px;
+          top: 36%;
+          left: 72%;
+          transform: rotate(126deg);
+          border-radius: 32%;
+          animation-delay: 26.5s;
+          animation-duration: 27s;
+        }
+
+        .shape55 {
+          width: 73px;
+          height: 73px;
+          top: 46%;
+          left: 38%;
+          transform: rotate(162deg);
+          border-radius: 18%;
+          animation-delay: 27s;
+          animation-duration: 24s;
+        }
+
+        .shape56 {
+          width: 108px;
+          height: 108px;
+          top: 56%;
+          left: 82%;
+          transform: rotate(198deg);
+          border-radius: 38%;
+          animation-delay: 27.5s;
+          animation-duration: 29s;
+        }
+
+        .shape57 {
+          width: 52px;
+          height: 52px;
+          top: 66%;
+          left: 22%;
+          transform: rotate(234deg);
+          border-radius: 6%;
+          animation-delay: 28s;
+          animation-duration: 20s;
+        }
+
+        .shape58 {
+          width: 125px;
+          height: 125px;
+          top: 76%;
+          left: 68%;
+          transform: rotate(270deg);
+          border-radius: 42%;
+          animation-delay: 28.5s;
+          animation-duration: 31s;
+        }
+
+        .shape59 {
+          width: 61px;
+          height: 61px;
+          top: 86%;
+          left: 42%;
+          transform: rotate(306deg);
+          border-radius: 14%;
+          animation-delay: 29s;
+          animation-duration: 25s;
+        }
+
+        .shape60 {
+          width: 88px;
+          height: 88px;
+          top: 96%;
+          left: 8%;
+          transform: rotate(342deg);
+          border-radius: 28%;
+          animation-delay: 29.5s;
+          animation-duration: 26s;
+        }
+
+        .shape61 {
+          width: 71px;
+          height: 71px;
+          top: 4%;
+          left: 58%;
+          transform: rotate(24deg);
+          border-radius: 16%;
+          animation-delay: 30s;
+          animation-duration: 22s;
+        }
+
+        .shape62 {
+          width: 134px;
+          height: 134px;
+          top: 14%;
+          left: 92%;
+          transform: rotate(60deg);
+          border-radius: 52%;
+          animation-delay: 30.5s;
+          animation-duration: 32s;
+        }
+
+        .shape63 {
+          width: 49px;
+          height: 49px;
+          top: 24%;
+          left: 32%;
+          transform: rotate(96deg);
+          border-radius: 4%;
+          animation-delay: 31s;
+          animation-duration: 19s;
+        }
+
+        .shape64 {
+          width: 102px;
+          height: 102px;
+          top: 34%;
+          left: 78%;
+          transform: rotate(132deg);
+          border-radius: 36%;
+          animation-delay: 31.5s;
+          animation-duration: 28s;
+        }
+
+        .shape65 {
+          width: 76px;
+          height: 76px;
+          top: 44%;
+          left: 18%;
+          transform: rotate(168deg);
+          border-radius: 20%;
+          animation-delay: 32s;
+          animation-duration: 24s;
+        }
+
+        .shape66 {
+          width: 118px;
+          height: 118px;
+          top: 54%;
+          left: 62%;
+          transform: rotate(204deg);
+          border-radius: 44%;
+          animation-delay: 32.5s;
+          animation-duration: 30s;
+        }
+
+        .shape67 {
+          width: 54px;
+          height: 54px;
+          top: 64%;
+          left: 28%;
+          transform: rotate(240deg);
+          border-radius: 10%;
+          animation-delay: 33s;
+          animation-duration: 21s;
+        }
+
+        .shape68 {
+          width: 96px;
+          height: 96px;
+          top: 74%;
+          left: 88%;
+          transform: rotate(276deg);
+          border-radius: 30%;
+          animation-delay: 33.5s;
+          animation-duration: 27s;
+        }
+
+        .shape69 {
+          width: 64px;
+          height: 64px;
+          top: 84%;
+          left: 52%;
+          transform: rotate(312deg);
+          border-radius: 22%;
+          animation-delay: 34s;
+          animation-duration: 25s;
+        }
+
+        .shape70 {
+          width: 112px;
+          height: 112px;
+          top: 94%;
+          left: 12%;
+          transform: rotate(348deg);
+          border-radius: 40%;
+          animation-delay: 34.5s;
+          animation-duration: 29s;
+        }
+
+        @keyframes float-rotate {
+          0% {
+            transform: translateY(0px) translateX(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-50px) translateX(25px) rotate(90deg);
+          }
+          50% {
+            transform: translateY(0px) translateX(-25px) rotate(180deg);
+          }
+          75% {
+            transform: translateY(50px) translateX(35px) rotate(270deg);
+          }
+          100% {
+            transform: translateY(0px) translateX(0px) rotate(360deg);
+          }
+        }
+
+        #slideBox {
+          width: 50%;
+          max-height: 100%;
+          height: 100%;
+          overflow: hidden;
+          margin-left: 50%;
+          position: absolute;
+          box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+        }
+
+        .topLayer {
+          width: 200%;
+          height: 100%;
+          position: relative;
+          left: 0;
+          margin-left: -100%;
+        }
+
+        label {
+          font-size: 0.8em;
+          text-transform: uppercase;
+        }
+
+        input {
+          background-color: transparent;
+          border: 0;
+          outline: 0;
+          font-size: 1em;
+          padding: 8px 1px;
+          margin-top: 0.1em;
+        }
+
+        .left {
+          width: 50%;
+          height: 100%;
+          overflow: scroll;
+          background: #2C3034;
+          left: 0;
+          position: absolute;
+        }
+        .left label {
+          color: #e3e3e3;
+        }
+        .left input {
+          border-bottom: 1px solid #e3e3e3;
+          color: #e3e3e3;
+        }
+        .left input:focus, .left input:active {
+          border-color: #03A9F4;
+          color: #03A9F4;
+        }
+        .left input:-webkit-autofill {
+          -webkit-box-shadow: 0 0 0 30px #2C3034 inset;
+          -webkit-text-fill-color: #e3e3e3;
+        }
+        .left a {
+          color: #03A9F4;
+        }
+
+        .right {
+          width: 50%;
+          height: 100%;
+          overflow: scroll;
+          background: #f9f9f9;
+          right: 0;
+          position: absolute;
+        }
+        .right label {
+          color: #212121;
+        }
+        .right input {
+          border-bottom: 1px solid #212121;
+        }
+        .right input:focus, .right input:active {
+          border-color: #673AB7;
+        }
+        .right input:-webkit-autofill {
+          -webkit-box-shadow: 0 0 0 30px #f9f9f9 inset;
+          -webkit-text-fill-color: #212121;
+        }
+
+        .content {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-height: 100%;
+          width: 80%;
+          margin: 0 auto;
+          position: relative;
+        }
+
+        .content h2 {
+          font-weight: 300;
+          font-size: 2.6em;
+          margin: 0.2em 0 0.1em;
+        }
+
+        .left .content h2 {
+          color: #03A9F4;
+        }
+
+        .right .content h2 {
+          color: #673AB7;
+        }
+
+        .form-element {
+          margin: 1.6em 0;
+        }
+        .form-element.form-submit {
+          margin: 1.6em 0 0;
+        }
+
+        .form-stack {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .checkbox {
+          -webkit-appearance: none;
+          outline: none;
+          background-color: #e3e3e3;
+          border: 1px solid #e3e3e3;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px -15px 10px -12px rgba(0, 0, 0, 0.05);
+          padding: 12px;
+          border-radius: 4px;
+          display: inline-block;
+          position: relative;
+        }
+
+        .checkbox:focus, .checkbox:checked:focus,
+        .checkbox:active, .checkbox:checked:active {
+          border-color: #03A9F4;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .checkbox:checked {
+          outline: none;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px -15px 10px -12px rgba(0, 0, 0, 0.05), inset 15px 10px -12px rgba(255, 255, 255, 0.1);
+        }
+
+        .checkbox:checked:after {
+          outline: none;
+          content: "✓";
+          color: #03A9F4;
+          font-size: 1.4em;
+          font-weight: 900;
+          position: absolute;
+          top: -4px;
+          left: 4px;
+        }
+
+        .form-checkbox {
+          display: flex;
+          align-items: center;
+        }
+        .form-checkbox label {
+          margin: 0 6px 0;
+          font-size: 0.72em;
+        }
+
+        button {
+          padding: 0.8em 1.2em;
+          margin: 0 10px 0 0;
+          width: auto;
+          font-weight: 600;
+          text-transform: uppercase;
+          font-size: 1em;
+          color: #fff;
+          line-height: 1em;
+          letter-spacing: 0.6px;
+          border-radius: 3px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.1);
+          border: 0;
+          outline: 0;
+          transition: all 0.25s;
+        }
+        button.signup {
+          background: #03A9F4;
+        }
+        button.login {
+          background: #673AB7;
+        }
+        button.off {
+          background: none;
+          box-shadow: none;
+          margin: 0;
+        }
+        button.off.signup {
+          color: #03A9F4;
+        }
+        button.off.login {
+          color: #673AB7;
+        }
+
+        button:focus, button:active, button:hover {
+          box-shadow: 0 4px 7px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        button:focus.signup, button:active.signup, button:hover.signup {
+          background: #0288D1;
+        }
+        button:focus.login, button:active.login, button:hover.login {
+          background: #512DA8;
+        }
+        button:focus.off, button:active.off, button:hover.off {
+          box-shadow: none;
+        }
+        button:focus.off.signup, button:active.off.signup, button:hover.off.signup {
+          color: #03A9F4;
+          background: #212121;
+        }
+        button:focus.off.login, button:active.off.login, button:hover.off.login {
+          color: #512DA8;
+          background: #e3e3e3;
+        }
+
+        @media only screen and (max-width: 768px) {
+          #slideBox {
+            width: 80%;
+            margin-left: 20%;
+          }
+
+          .signup-info, .login-info {
+            display: none;
+          }
+        }
+      `}</style>
+
+      <div id="back">
+        <div className="animated-shapes">
+          <div className="shape shape1"></div>
+          <div className="shape shape2"></div>
+          <div className="shape shape3"></div>
+          <div className="shape shape4"></div>
+          <div className="shape shape5"></div>
+          <div className="shape shape6"></div>
+          <div className="shape shape7"></div>
+          <div className="shape shape8"></div>
+          <div className="shape shape9"></div>
+          <div className="shape shape10"></div>
+          <div className="shape shape11"></div>
+          <div className="shape shape12"></div>
+          <div className="shape shape13"></div>
+          <div className="shape shape14"></div>
+          <div className="shape shape15"></div>
+          <div className="shape shape16"></div>
+          <div className="shape shape17"></div>
+          <div className="shape shape18"></div>
+          <div className="shape shape19"></div>
+          <div className="shape shape20"></div>
+          <div className="shape shape21"></div>
+          <div className="shape shape22"></div>
+          <div className="shape shape23"></div>
+          <div className="shape shape24"></div>
+          <div className="shape shape25"></div>
+          <div className="shape shape26"></div>
+          <div className="shape shape27"></div>
+          <div className="shape shape28"></div>
+          <div className="shape shape29"></div>
+          <div className="shape shape30"></div>
+          <div className="shape shape31"></div>
+          <div className="shape shape32"></div>
+          <div className="shape shape33"></div>
+          <div className="shape shape34"></div>
+          <div className="shape shape35"></div>
+          <div className="shape shape36"></div>
+          <div className="shape shape37"></div>
+          <div className="shape shape38"></div>
+          <div className="shape shape39"></div>
+          <div className="shape shape40"></div>
+          <div className="shape shape41"></div>
+          <div className="shape shape42"></div>
+          <div className="shape shape43"></div>
+          <div className="shape shape44"></div>
+          <div className="shape shape45"></div>
+          <div className="shape shape46"></div>
+          <div className="shape shape47"></div>
+          <div className="shape shape48"></div>
+          <div className="shape shape49"></div>
+          <div className="shape shape50"></div>
+          <div className="shape shape51"></div>
+          <div className="shape shape52"></div>
+          <div className="shape shape53"></div>
+          <div className="shape shape54"></div>
+          <div className="shape shape55"></div>
+          <div className="shape shape56"></div>
+          <div className="shape shape57"></div>
+          <div className="shape shape58"></div>
+          <div className="shape shape59"></div>
+          <div className="shape shape60"></div>
+          <div className="shape shape61"></div>
+          <div className="shape shape62"></div>
+          <div className="shape shape63"></div>
+          <div className="shape shape64"></div>
+          <div className="shape shape65"></div>
+          <div className="shape shape66"></div>
+          <div className="shape shape67"></div>
+          <div className="shape shape68"></div>
+          <div className="shape shape69"></div>
+          <div className="shape shape70"></div>
+        </div>
+        <div className="backRight"></div>
+        <div className="backLeft"></div>
       </div>
 
-      {/* Right Side - Decorative */}
-      <motion.div
-        className="hidden lg:flex flex-1 relative overflow-hidden"
-        style={{ backgroundColor: '#f8fafc' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        {/* Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-background" />
+      <div id="slideBox" ref={slideBoxRef}>
+        <div className="topLayer" ref={topLayerRef}>
+          <div style={{ scrollbarWidth: 'none' }} className="left">
+            <div className="content">
+              <form onSubmit={handleSignup}>
+                <div className="form-element form-stack">
+                  <label htmlFor="email" className="form-label">Email</label>
+                  <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                  />
+                </div>
+                <div className="form-element form-stack">
+                  <label htmlFor="username-signup" className="form-label">Username</label>
+                  <input
+                    id="username-signup"
+                    type="text"
+                    name="username"
+                    value={signupUsername}
+                    onChange={(e) => setSignupUsername(e.target.value)}
+                  />
+                </div>
+                <div className="form-element form-stack">
+                  <label htmlFor="password-signup" className="form-label">Password</label>
+                  <input
+                    id="password-signup"
+                    type="password"
+                    name="password"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                  />
+                </div>
+                <div className="form-element form-checkbox">
+                  <input
+                    id="confirm-terms"
+                    type="checkbox"
+                    name="confirm"
+                    value="yes"
+                    className="checkbox"
+                    checked={confirmTerms}
+                    onChange={(e) => setConfirmTerms(e.target.checked)}
+                  />
+                  <label htmlFor="confirm-terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                </div>
+                <div className="form-element form-submit">
+                  <button id="goLeft" className="signup off" type="button" onClick={slideToLogin}>Log In</button>
+                </div>
+              </form>
+            </div>
+          </div>
 
-        {/* Animated Shapes */}
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            className="absolute top-20 left-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-          <motion.div
-            className="absolute bottom-20 right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl"
-            animate={{
-              scale: [1.2, 1, 1.2],
-              opacity: [0.2, 0.4, 0.2],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
+          <div style={{ scrollbarWidth: 'none' }} className="right">
+            <div className="content">
+              <h2>Login</h2>
+              <form onSubmit={handleLogin}>
+                <div className="form-element form-stack">
+                  <label htmlFor="username-login" className="form-label">Username</label>
+                  <input
+                    id="username-login"
+                    type="text"
+                    name="username"
+                    value={loginUsername}
+                    onChange={(e) => setLoginUsername(e.target.value)}
+                  />
+                </div>
+                <div className="form-element form-stack">
+                  <label htmlFor="password-login" className="form-label">Password</label>
+                  <input
+                    id="password-login"
+                    type="password"
+                    name="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                  />
+                </div>
+                <div className="form-element form-submit">
+                  <button id="logIn" className="login" type="submit" name="login" disabled={isLoading}>
+                    {isLoading ? 'Logging in...' : 'Log In'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center items-center p-12 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="space-y-6"
-          >
-            <div className="flex justify-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <div className="w-16 h-16 rounded-2xl bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                <Zap className="w-8 h-8 text-primary" />
-              </div>
-              <div className="w-16 h-16 rounded-2xl bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                <Sparkles className="w-8 h-8 text-primary" />
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-3xl font-bold text-foreground mb-4">
-                Powerful Admin Dashboard
-              </h2>
-              <p className="text-muted-foreground text-lg max-w-md">
-                Manage your SaaS business with our comprehensive analytics, user management, and reporting tools.
-              </p>
-            </div>
-
-            {/* Stats */}
-            <div className="flex justify-center gap-8 pt-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary">10K+</div>
-                <div className="text-sm text-muted-foreground">Active Users</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary">99.9%</div>
-                <div className="text-sm text-muted-foreground">Uptime</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary">24/7</div>
-                <div className="text-sm text-muted-foreground">Support</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
-    </div>
+      </div>
+    </>
   );
 }
