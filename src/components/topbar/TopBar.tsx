@@ -32,6 +32,7 @@ import { cn } from '@/utils/helpers';
 import { useTheme } from '@/context/ThemeContext';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -75,6 +76,7 @@ export default function TopBar() {
   const { theme, setTheme } = useTheme();
   const { settings } = useSettings();
   const { username, logout } = useAuth();
+  const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -312,7 +314,10 @@ export default function TopBar() {
                 <span>Billing</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout}>
+              <DropdownMenuItem onClick={() => {
+                logout();
+                router.push('/login');
+              }}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

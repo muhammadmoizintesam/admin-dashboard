@@ -20,6 +20,8 @@ import {
 import { cn } from '@/utils/helpers';
 import { useTheme } from '@/context/ThemeContext';
 import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { notifications as mockNotifications } from '@/mock-data/notifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -35,6 +37,8 @@ export default function Navbar() {
 
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { settings, toggleSidebar } = useSettings();
+  const { logout } = useAuth();
+  const router = useRouter();
 
   const searchRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -320,8 +324,8 @@ export default function Navbar() {
                       className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent w-full text-red-600"
                       onClick={() => {
                         setProfileOpen(false);
-                        // Mock logout
-                        alert('Logged out successfully!');
+                        logout();
+                        router.push('/login');
                       }}
                     >
                       <LogOut className="w-4 h-4" />
