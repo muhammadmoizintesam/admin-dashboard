@@ -13,9 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getStatusColor, getPriorityColor } from '@/utils/helpers';
 import { useToast } from '@/hooks/use-toast';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const anim = useAnimationConfig();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -149,7 +151,7 @@ export default function TasksPage() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>

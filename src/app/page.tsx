@@ -14,6 +14,7 @@ import {
   HardDrive,
 } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import StatCard from '@/components/cards/StatCard';
 import ChartCard from '@/components/cards/ChartCard';
 import WidgetCard from '@/components/cards/WidgetCard';
@@ -32,59 +33,39 @@ import { revenueData, serverMetrics } from '@/mock-data/analytics';
 export default function DashboardPage() {
   const { settings } = useSettings();
   const { widgetVisibility } = settings;
+  const anim = useAnimationConfig();
 
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: '-100px' });
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
+        staggerChildren: anim.enabled ? 0.05 : 0,
+        delayChildren: anim.enabled ? 0.1 : 0,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: anim.enabled ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 100,
-        damping: 10,
-      },
+      transition: anim.transition,
     },
   };
 
   const slideInFromLeft = {
-    hidden: { opacity: 0, x: -50 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 120,
-        damping: 15,
-      },
-    },
+    hidden: anim.enabled ? { opacity: 0, x: -20 } : { opacity: 1, x: 0 },
+    visible: { opacity: 1, x: 0, transition: anim.transition },
   };
 
   const scaleIn = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        type: "spring" as const,
-        stiffness: 200,
-        damping: 20,
-      },
-    },
+    hidden: anim.enabled ? { opacity: 0, scale: 0.98 } : { opacity: 1, scale: 1 },
+    visible: { opacity: 1, scale: 1, transition: anim.transition },
   };
 
   const stats = [
@@ -149,26 +130,26 @@ export default function DashboardPage() {
         <div>
           <motion.h1
             className="text-2xl font-bold tracking-tight"
-            initial={{ opacity: 0, x: -20 }}
+            initial={anim.enabled ? { opacity: 0, x: -20 } : false}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, type: "spring", stiffness: 150 }}
+            transition={anim.transition}
           >
             Dashboard
           </motion.h1>
           <motion.p
             className="text-muted-foreground"
-            initial={{ opacity: 0, x: -20 }}
+            initial={anim.enabled ? { opacity: 0, x: -20 } : false}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, type: "spring", stiffness: 150 }}
+            transition={anim.transition}
           >
             Welcome back! Here&apos;s an overview of your platform.
           </motion.p>
         </div>
         <motion.div
           className="flex items-center gap-2"
-          initial={{ opacity: 0, x: 20 }}
+          initial={anim.enabled ? { opacity: 0, x: 20 } : false}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5, type: "spring", stiffness: 150 }}
+          transition={anim.transition}
         >
           <span className="text-sm text-muted-foreground">Last updated: {new Date().toLocaleTimeString()}</span>
         </motion.div>
@@ -184,12 +165,8 @@ export default function DashboardPage() {
             <motion.div
               key={stat.title}
               variants={scaleIn}
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-                transition: { type: "spring", stiffness: 300, damping: 20 }
-              }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
+              whileTap={anim.hoverOn ? { scale: anim.tapScale } : undefined}
             >
               <StatCard {...stat} index={index} />
             </motion.div>
@@ -205,11 +182,7 @@ export default function DashboardPage() {
         {widgetVisibility.userGrowth && (
           <motion.div
             variants={scaleIn}
-            whileHover={{
-              scale: 1.02,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
-              transition: { type: "spring", stiffness: 200, damping: 25 }
-            }}
+            whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
           >
             <ChartCard title="User Growth" subtitle="Monthly user acquisition trends">
               <UserGrowthChart height={280} />
@@ -219,11 +192,7 @@ export default function DashboardPage() {
         {widgetVisibility.performance && (
           <motion.div
             variants={scaleIn}
-            whileHover={{
-              scale: 1.02,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
-              transition: { type: "spring", stiffness: 200, damping: 25 }
-            }}
+            whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
           >
             <ChartCard title="Revenue Overview" subtitle="Monthly revenue performance">
               <RevenueChart height={280} />
@@ -236,11 +205,7 @@ export default function DashboardPage() {
       {widgetVisibility.performance && (
         <motion.div
           variants={scaleIn}
-          whileHover={{
-            scale: 1.01,
-            boxShadow: "0 25px 50px rgba(0,0,0,0.1)",
-            transition: { type: "spring", stiffness: 150, damping: 30 }
-          }}
+          whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
         >
           <ChartCard title="System Performance" subtitle="Real-time server metrics">
             <PerformanceChart height={200} />
@@ -260,11 +225,7 @@ export default function DashboardPage() {
               initial="hidden"
               animate="visible"
               exit="hidden"
-              whileHover={{
-                scale: 1.03,
-                boxShadow: "0 15px 35px rgba(0,0,0,0.12)",
-                transition: { type: "spring", stiffness: 250, damping: 20 }
-              }}
+              whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
             >
               <RecentUsersWidget />
             </motion.div>
@@ -275,11 +236,7 @@ export default function DashboardPage() {
               initial="hidden"
               animate="visible"
               exit="hidden"
-              whileHover={{
-                scale: 1.03,
-                boxShadow: "0 15px 35px rgba(0,0,0,0.12)",
-                transition: { type: "spring", stiffness: 250, damping: 20 }
-              }}
+              whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
             >
               <ActivityFeedWidget />
             </motion.div>
@@ -290,11 +247,7 @@ export default function DashboardPage() {
               initial="hidden"
               animate="visible"
               exit="hidden"
-              whileHover={{
-                scale: 1.03,
-                boxShadow: "0 15px 35px rgba(0,0,0,0.12)",
-                transition: { type: "spring", stiffness: 250, damping: 20 }
-              }}
+              whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
             >
               <TaskOverviewWidget />
             </motion.div>
@@ -314,11 +267,7 @@ export default function DashboardPage() {
               initial="hidden"
               animate="visible"
               exit="hidden"
-              whileHover={{
-                scale: 1.02,
-                boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
-                transition: { type: "spring", stiffness: 200, damping: 25 }
-              }}
+              whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
             >
               <ServerStatusWidget />
             </motion.div>
@@ -329,11 +278,7 @@ export default function DashboardPage() {
               initial="hidden"
               animate="visible"
               exit="hidden"
-              whileHover={{
-                scale: 1.02,
-                boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
-                transition: { type: "spring", stiffness: 200, damping: 25 }
-              }}
+              whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
             >
               <SystemHealthWidget />
             </motion.div>

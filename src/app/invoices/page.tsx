@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { invoices as initialInvoices } from '@/mock-data/invoices';
 import { formatCurrency, formatDate, getStatusColor } from '@/utils/helpers';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import DataTable, { Column } from '@/components/tables/DataTable';
 
 interface Invoice {
@@ -22,6 +23,7 @@ interface Invoice {
 
 export default function InvoicesPage() {
   const [invoices] = useState(initialInvoices);
+  const anim = useAnimationConfig();
 
   const columns: Column<Invoice>[] = [
     { key: 'id', header: 'Invoice', sortable: true },
@@ -41,7 +43,7 @@ export default function InvoicesPage() {
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>

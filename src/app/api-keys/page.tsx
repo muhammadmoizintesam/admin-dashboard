@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import Modal, { ConfirmModal } from '@/components/modals/Modal';
 import { FormInput, FormSelect } from '@/components/forms/FormComponents';
 import { useToast } from '@/hooks/use-toast';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import { formatDateTime, cn } from '@/utils/helpers';
 
 interface ApiKey {
@@ -23,6 +24,7 @@ interface ApiKey {
 
 export default function ApiKeysPage() {
   const { toast } = useToast();
+  const anim = useAnimationConfig();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState<ApiKey | null>(null);
@@ -70,7 +72,7 @@ export default function ApiKeysPage() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>

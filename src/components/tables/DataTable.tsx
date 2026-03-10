@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 export interface Column<T> {
   key: keyof T | string;
@@ -79,6 +80,7 @@ export default function DataTable<T extends { id: string }>({
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const anim = useAnimationConfig();
 
   // Filter data
   const filteredData = useMemo(() => {
@@ -165,65 +167,24 @@ export default function DataTable<T extends { id: string }>({
 
   // Animation variants
   const tableRowVariants = {
-    hidden: { opacity: 0, x: -20, scale: 0.95 },
+    hidden: anim.enabled ? { opacity: 0, x: -10 } : { opacity: 1, x: 0 },
     visible: (index: number) => ({
       opacity: 1,
       x: 0,
-      scale: 1,
-      transition: {
-        type: "spring" as const,
-        stiffness: 200,
-        damping: 20,
-        delay: index * 0.05,
-      },
+      transition: { duration: anim.duration, delay: anim.enabled ? index * 0.03 : 0 },
     }),
-    hover: {
-      scale: 1.02,
-      x: 5,
-      backgroundColor: "hsl(var(--muted)/0.3)",
-      transition: {
-        type: "spring" as const,
-        stiffness: 300,
-        damping: 25,
-      },
-    },
-    exit: {
-      opacity: 0,
-      x: 20,
-      scale: 0.95,
-      transition: {
-        type: "spring" as const,
-        stiffness: 400,
-        damping: 30,
-      },
-    },
+    hover: anim.hoverOn ? { scale: 1.01, transition: anim.transition } : undefined,
+    exit: anim.enabled ? { opacity: 0, x: 10, transition: anim.transition } : { opacity: 1, x: 0 },
   };
 
   const headerVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 200,
-        damping: 20,
-      },
-    },
+    hidden: anim.enabled ? { opacity: 0, y: -10 } : { opacity: 1, y: 0 },
+    visible: { opacity: 1, y: 0, transition: anim.transition },
   };
 
   const paginationVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 200,
-        damping: 20,
-        delay: 0.3,
-      },
-    },
+    hidden: anim.enabled ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 },
+    visible: { opacity: 1, y: 0, transition: { ...anim.transition, delay: anim.enabled ? 0.1 : 0 } },
   };
 
   return (
@@ -303,8 +264,9 @@ export default function DataTable<T extends { id: string }>({
                 {bulkActions && (
                   <th className="w-12 px-4 py-3">
                     <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={anim.hoverOn ? { scale: 1.05 } : undefined}
+                      whileTap={anim.hoverOn ? { scale: 0.95 } : undefined}
+                      transition={anim.transition}
                       className="inline-block"
                     >
                       <Checkbox
@@ -323,12 +285,8 @@ export default function DataTable<T extends { id: string }>({
                     )}
                     style={{ width: column.width }}
                     onClick={() => column.sortable && handleSort(String(column.key))}
-                    whileHover={{
-                      scale: 1.02,
-                      color: 'hsl(var(--foreground))',
-                      transition: { type: "spring" as const, stiffness: 300 }
-                    }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={anim.hoverOn ? { scale: 1.02, transition: anim.transition } : undefined}
+                    whileTap={anim.hoverOn ? { scale: 0.98 } : undefined}
                   >
                     <div className="flex items-center gap-1">
                       {column.header}
@@ -363,28 +321,25 @@ export default function DataTable<T extends { id: string }>({
                     variants={tableRowVariants}
                     initial="hidden"
                     animate="visible"
-                    whileHover="hover"
+                    whileHover={anim.hoverOn ? "hover" : undefined}
                     exit="exit"
                     layout
                     className={cn(
-                      'bg-card hover:bg-muted/50 transition-colors cursor-pointer relative',
+                      'bg-card hover:bg-muted/50 transition-colors cursor-pointer relative group',
                       onRowClick && 'cursor-pointer'
                     )}
                     onClick={() => onRowClick?.(item)}
                   >
                     {/* Row highlight effect */}
-                    <motion.div
-                      className="absolute inset-0 bg-primary/5 pointer-events-none"
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
+                    <div
+                      className="absolute inset-0 bg-primary/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
                     />
 
                     {bulkActions && (
                       <td className="px-4 py-3 relative z-10" onClick={(e) => e.stopPropagation()}>
                         <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
+                          whileHover={anim.hoverOn ? { scale: 1.05 } : undefined}
+                          whileTap={anim.hoverOn ? { scale: 0.95 } : undefined}
                           className="inline-block"
                         >
                           <Checkbox
@@ -412,8 +367,8 @@ export default function DataTable<T extends { id: string }>({
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <motion.div
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.95 }}
+                              whileHover={anim.hoverOn ? { scale: 1.05 } : undefined}
+                              whileTap={anim.hoverOn ? { scale: 0.95 } : undefined}
                             >
                               <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <MoreHorizontal className="w-4 h-4" />
@@ -481,8 +436,8 @@ export default function DataTable<T extends { id: string }>({
             </motion.div>
             <div className="flex items-center gap-1">
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={anim.hoverOn ? { scale: 1.05 } : undefined}
+                whileTap={anim.hoverOn ? { scale: 0.95 } : undefined}
               >
                 <Button
                   variant="outline"
@@ -507,8 +462,8 @@ export default function DataTable<T extends { id: string }>({
                 return (
                   <motion.div
                     key={pageNum}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={anim.hoverOn ? { scale: 1.05 } : undefined}
+                    whileTap={anim.hoverOn ? { scale: 0.95 } : undefined}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 + i * 0.05 }}
@@ -524,8 +479,8 @@ export default function DataTable<T extends { id: string }>({
                 );
               })}
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={anim.hoverOn ? { scale: 1.05 } : undefined}
+                whileTap={anim.hoverOn ? { scale: 0.95 } : undefined}
               >
                 <Button
                   variant="outline"

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 const integrations = [
   { id: 1, name: 'Slack', description: 'Send notifications to Slack channels', icon: '💬', connected: true, category: 'Communication' },
@@ -22,6 +23,7 @@ const integrations = [
 
 export default function IntegrationsPage() {
   const [connected, setConnected] = useState(integrations.map(i => ({ id: i.id, connected: i.connected })));
+  const anim = useAnimationConfig();
 
   const toggleIntegration = (id: number) => {
     setConnected(connected.map(c => c.id === id ? { ...c, connected: !c.connected } : c));
@@ -30,7 +32,7 @@ export default function IntegrationsPage() {
   const isConnected = (id: number) => connected.find(c => c.id === id)?.connected || false;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>

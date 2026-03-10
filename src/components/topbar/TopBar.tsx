@@ -32,6 +32,7 @@ import { cn } from '@/utils/helpers';
 import { useTheme } from '@/context/ThemeContext';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -77,6 +78,7 @@ export default function TopBar() {
   const { settings } = useSettings();
   const { username, logout } = useAuth();
   const router = useRouter();
+  const anim = useAnimationConfig();
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -92,33 +94,27 @@ export default function TopBar() {
 
   return (
     <motion.header
-      className={`sticky top-0 z-50 w-full border-b border-border transition-all duration-300 ${scrolled ? 'bg-background/95 backdrop-blur-lg shadow-sm' : 'bg-background/80 backdrop-blur-md'
+      className={`sticky top-0 z-50 w-full border-b border-border ${scrolled ? 'bg-background/95 backdrop-blur-lg shadow-sm' : 'bg-background/80 backdrop-blur-md'
         } supports-[backdrop-filter]:bg-background/60`}
-      initial={{ y: -100 }}
+      initial={anim.enabled ? { y: -100 } : false}
       animate={{ y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+      transition={anim.transition}
+      style={{ transitionDuration: anim.enabled ? undefined : '0s' }}
     >
       <div className="flex h-16 items-center px-36 lg:px-40">
         {/* Logo */}
         <motion.div
           className="mr-4 flex"
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+          whileHover={anim.hoverOn ? { scale: anim.hoverScale } : undefined}
+          transition={anim.transition}
         >
           <Link href="/" className="mr-6 flex items-center space-x-2 group">
-            <motion.div
-              className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
-            >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow duration-150">
               <span className="text-primary-foreground font-bold text-sm">S</span>
-            </motion.div>
-            <motion.span
-              className="hidden font-bold sm:inline-block text-foreground group-hover:text-primary transition-colors duration-300"
-              whileHover={{ x: 2 }}
-            >
+            </div>
+            <span className="hidden font-bold sm:inline-block text-foreground group-hover:text-primary transition-colors duration-150">
               SaaSify
-            </motion.span>
+            </span>
           </Link>
         </motion.div>
 
@@ -129,39 +125,31 @@ export default function TopBar() {
             const Icon = item.icon;
 
             return (
-              <motion.div key={item.href} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div key={item.href} whileHover={anim.hoverOn ? { scale: anim.hoverScale } : undefined} whileTap={anim.hoverOn ? { scale: anim.tapScale } : undefined} transition={anim.transition}>
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-300 relative group',
+                    'flex items-center gap-2 px-3 py-2 rounded-md transition-colors duration-150 relative group',
                     isActive
                       ? 'bg-primary/10 text-primary shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                   )}
                 >
-                  <motion.div
-                    whileHover={{ rotate: [0, -10, 10, 0] }}
-                    transition={{ duration: 0.5 }}
-                  >
+                  <div>
                     <Icon className="w-4 h-4" />
-                  </motion.div>
+                  </div>
                   <span className="hidden lg:inline font-medium">{item.name}</span>
                   {item.badge && (
-                    <motion.div
-                      className="h-5 w-5 p-0 text-xs bg-destructive text-destructive-foreground rounded-full flex items-center justify-center absolute -top-1 -right-1"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
+                    <span className="h-5 w-5 p-0 text-xs bg-destructive text-destructive-foreground rounded-full flex items-center justify-center absolute -top-1 -right-1">
                       {item.badge}
-                    </motion.div>
+                    </span>
                   )}
                   {isActive && (
                     <motion.div
                       className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
-                      layoutId="activeTab"
+                      layoutId={anim.enabled ? 'activeTab' : undefined}
                       initial={false}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      transition={anim.transition}
                     />
                   )}
                 </Link>
@@ -209,30 +197,27 @@ export default function TopBar() {
         {/* Right Side */}
         <div className="ml-auto flex items-center space-x-2">
           {/* Search */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={anim.hoverOn ? { scale: anim.hoverScale } : undefined} whileTap={anim.hoverOn ? { scale: anim.tapScale } : undefined} transition={anim.transition}>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSearchOpen(!searchOpen)}
-              className="text-muted-foreground hover:text-foreground h-8 px-3 transition-all duration-300"
+              className="text-muted-foreground hover:text-foreground h-8 px-3 transition-colors duration-150"
             >
-              <motion.div
-                animate={{ rotate: searchOpen ? 90 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
+              <span className={cn('inline-block transition-transform duration-150', searchOpen && 'rotate-90')}>
                 <Search className="w-4 h-4" />
-              </motion.div>
+              </span>
               <span className="hidden sm:inline ml-2">Search...</span>
             </Button>
           </motion.div>
 
           {/* Theme Toggle */}
-          <motion.div whileHover={{ scale: 1.05, rotate: 180 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={anim.hoverOn ? { scale: anim.hoverScale } : undefined} whileTap={anim.hoverOn ? { scale: anim.tapScale } : undefined} transition={anim.transition}>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className="text-muted-foreground hover:text-foreground h-8 w-8 p-0 transition-all duration-300"
+              className="text-muted-foreground hover:text-foreground h-8 w-8 p-0 transition-colors duration-150"
             >
               <ThemeIcon className="w-4 h-4" />
             </Button>
@@ -241,21 +226,12 @@ export default function TopBar() {
           {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="ghost" size="sm" className="relative text-muted-foreground hover:text-foreground h-8 w-8 p-0 transition-all duration-300">
-                  <motion.div
-                    animate={{ rotate: [0, -10, 10, 0] }}
-                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
-                  >
-                    <Bell className="w-4 h-4" />
-                  </motion.div>
-                  <motion.div
-                    className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs font-bold"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
+              <motion.div whileHover={anim.hoverOn ? { scale: anim.hoverScale } : undefined} whileTap={anim.hoverOn ? { scale: anim.tapScale } : undefined} transition={anim.transition}>
+                <Button variant="ghost" size="sm" className="relative text-muted-foreground hover:text-foreground h-8 w-8 p-0 transition-colors duration-150">
+                  <Bell className="w-4 h-4" />
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs font-bold">
                     3
-                  </motion.div>
+                  </span>
                 </Button>
               </motion.div>
             </DropdownMenuTrigger>

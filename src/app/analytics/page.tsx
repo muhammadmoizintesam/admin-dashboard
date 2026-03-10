@@ -11,8 +11,10 @@ import RevenueChart from '@/components/charts/RevenueChart';
 import PerformanceChart from '@/components/charts/PerformanceChart';
 import { revenueData } from '@/mock-data/analytics';
 import { formatCurrency, formatNumber } from '@/utils/helpers';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 export default function AnalyticsPage() {
+  const anim = useAnimationConfig();
   const stats = [
     { title: 'Page Views', value: formatNumber(284750), change: 12.5, icon: Eye, iconColor: 'text-blue-600', iconBgColor: 'bg-blue-100 dark:bg-blue-900/30' },
     { title: 'Unique Visitors', value: formatNumber(45230), change: 8.3, icon: Users, iconColor: 'text-purple-600', iconBgColor: 'bg-purple-100 dark:bg-purple-900/30' },
@@ -21,7 +23,7 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>

@@ -7,8 +7,10 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbS
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 export default function ReportsPage() {
+  const anim = useAnimationConfig();
   const reports = [
     { id: 1, name: 'Monthly Revenue Report', type: 'Financial', date: '2024-01-15', status: 'Ready' },
     { id: 2, name: 'User Activity Report', type: 'Analytics', date: '2024-01-14', status: 'Ready' },
@@ -18,7 +20,7 @@ export default function ReportsPage() {
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>

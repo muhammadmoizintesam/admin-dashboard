@@ -6,6 +6,7 @@ import { CheckCircle, AlertTriangle, XCircle, ChevronRight } from 'lucide-react'
 import { systemHealth } from '@/mock-data/analytics';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import WidgetCard from '@/components/cards/WidgetCard';
 
 const getStatusIcon = (status: string) => {
@@ -35,6 +36,8 @@ const getStatusColor = (status: string) => {
 };
 
 export default function SystemHealthWidget() {
+  const anim = useAnimationConfig();
+
   return (
     <WidgetCard
       title="System Health"
@@ -70,9 +73,9 @@ export default function SystemHealthWidget() {
           {systemHealth.services.map((service, index) => (
             <motion.div
               key={service.name}
-              initial={{ opacity: 0, x: -10 }}
+              initial={anim.enabled ? { opacity: 0, x: -10 } : false}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ ...anim.transition, delay: anim.enabled ? index * 0.03 : 0 }}
               className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors"
             >
               <div className="flex items-center gap-2">

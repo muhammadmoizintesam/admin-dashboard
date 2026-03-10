@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { activityLogs as initialLogs } from '@/mock-data/activity-logs';
 import { formatRelativeTime, formatDateTime, cn } from '@/utils/helpers';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import DataTable, { Column } from '@/components/tables/DataTable';
 
 interface ActivityLog {
@@ -23,6 +24,7 @@ interface ActivityLog {
 
 export default function ActivityLogsPage() {
   const [logs] = useState(initialLogs);
+  const anim = useAnimationConfig();
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
@@ -53,7 +55,7 @@ export default function ActivityLogsPage() {
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>

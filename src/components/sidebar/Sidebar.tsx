@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/helpers';
 import { useSettings } from '@/context/SettingsContext';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -63,9 +64,9 @@ const navItems: NavItem[] = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { settings, toggleSidebar } = useSettings();
+  const anim = useAnimationConfig();
   const isCollapsed = settings.sidebarCollapsed;
 
-  // Animation variants
   const sidebarVariants = {
     expanded: {
       width: settings.sidebarWidth === 'narrow' ? 200 : settings.sidebarWidth === 'default' ? 240 : 280,
@@ -88,34 +89,14 @@ export default function Sidebar() {
   };
 
   const navItemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: anim.enabled ? { opacity: 0, x: -10 } : { opacity: 1, x: 0 },
     visible: (index: number) => ({
       opacity: 1,
       x: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 200,
-        damping: 20,
-        delay: index * 0.05,
-      },
+      transition: { duration: anim.duration, delay: anim.enabled ? index * 0.03 : 0 },
     }),
-    hover: {
-      scale: 1.05,
-      x: 5,
-      transition: {
-        type: "spring" as const,
-        stiffness: 400,
-        damping: 25,
-      },
-    },
-    tap: {
-      scale: 0.95,
-      transition: {
-        type: "spring" as const,
-        stiffness: 600,
-        damping: 30,
-      },
-    },
+    hover: anim.hoverOn ? { scale: anim.hoverScale, x: anim.subtle ? 0 : 2, transition: anim.transition } : undefined,
+    tap: anim.hoverOn ? { scale: anim.tapScale, transition: anim.transition } : undefined,
   };
 
   const logoVariants = {
@@ -166,11 +147,7 @@ export default function Sidebar() {
                 >
                   <motion.div
                     className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"
-                    whileHover={{
-                      rotate: 360,
-                      scale: 1.1,
-                      transition: { duration: 0.6, ease: "easeInOut" }
-                    }}
+                    whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
                   >
                     <span className="text-primary-foreground font-bold text-sm">S</span>
                   </motion.div>
@@ -188,11 +165,7 @@ export default function Sidebar() {
             {isCollapsed && (
               <motion.div
                 className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center mx-auto"
-                whileHover={{
-                  rotate: 360,
-                  scale: 1.1,
-                  transition: { duration: 0.6, ease: "easeInOut" }
-                }}
+                whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
               >
                 <span className="text-primary-foreground font-bold text-sm">S</span>
               </motion.div>
@@ -226,15 +199,9 @@ export default function Sidebar() {
                               : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                           )}
                         >
-                          <motion.div
-                            whileHover={{
-                              rotate: [0, -10, 10, 0],
-                              scale: 1.1,
-                              transition: { duration: 0.5 }
-                            }}
-                          >
+                          <div>
                             <Icon className="w-5 h-5" />
-                          </motion.div>
+                          </div>
                           {item.badge && (
                             <motion.span
                               className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-medium bg-red-500 text-white rounded-full flex items-center justify-center"
@@ -271,15 +238,9 @@ export default function Sidebar() {
                           : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                       )}
                     >
-                      <motion.div
-                        whileHover={{
-                          rotate: [0, -10, 10, 0],
-                          scale: 1.1,
-                          transition: { duration: 0.5 }
-                        }}
-                      >
+                      <div>
                         <Icon className="w-5 h-5 flex-shrink-0" />
-                      </motion.div>
+                      </div>
                       <motion.span
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -317,14 +278,8 @@ export default function Sidebar() {
           {/* Collapse Toggle */}
           <div className="border-t border-sidebar-border p-4">
             <motion.div
-              whileHover={{
-                scale: 1.05,
-                transition: { type: "spring", stiffness: 400, damping: 25 }
-              }}
-              whileTap={{
-                scale: 0.95,
-                transition: { type: "spring", stiffness: 600, damping: 30 }
-              }}
+              whileHover={anim.hoverOn ? { scale: anim.hoverScale, transition: anim.transition } : undefined}
+              whileTap={anim.hoverOn ? { scale: anim.tapScale, transition: anim.transition } : undefined}
             >
               <Button
                 variant="ghost"

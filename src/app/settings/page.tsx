@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Save, RotateCcw, Palette, Layout, Type, Eye, Zap } from 'lucide-react';
 import { useSettings, colorOptions } from '@/context/SettingsContext';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import { useTheme } from '@/context/ThemeContext';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ export default function SettingsPage() {
   const { settings, updateSettings, updateWidgetVisibility, resetSettings } = useSettings();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { toast } = useToast();
+  const anim = useAnimationConfig();
 
   const handleReset = () => {
     resetSettings();
@@ -27,7 +29,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>
@@ -93,7 +95,7 @@ export default function SettingsPage() {
                     key={color.value}
                     onClick={() => updateSettings({ primaryColor: color.value })}
                     className={cn(
-                      'w-10 h-10 rounded-lg transition-transform hover:scale-110',
+                      'w-10 h-10 rounded-lg transition-transform duration-150 hover:scale-[1.03]',
                       settings.primaryColor === color.value && 'ring-2 ring-offset-2 ring-offset-background ring-foreground'
                     )}
                     style={{ backgroundColor: color.value }}
@@ -305,9 +307,9 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Animations</CardTitle>
-              <CardDescription>Control animation preferences.</CardDescription>
+              <CardDescription>Control transitions and motion across the app.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Enable Animations</p>
@@ -316,6 +318,59 @@ export default function SettingsPage() {
                 <Switch
                   checked={settings.animationsEnabled}
                   onCheckedChange={(checked) => updateSettings({ animationsEnabled: checked })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Animation Speed</Label>
+                <p className="text-sm text-muted-foreground">How fast transitions and animations run.</p>
+                <RadioGroup
+                  value={settings.animationSpeed}
+                  onValueChange={(v) => updateSettings({ animationSpeed: v as 'fast' | 'normal' | 'slow' })}
+                  className="flex flex-wrap gap-4 pt-2"
+                >
+                  {[
+                    { value: 'fast', label: 'Fast' },
+                    { value: 'normal', label: 'Normal' },
+                    { value: 'slow', label: 'Slow' },
+                  ].map((opt) => (
+                    <div key={opt.value} className="flex items-center space-x-2">
+                      <RadioGroupItem value={opt.value} id={`speed-${opt.value}`} />
+                      <Label htmlFor={`speed-${opt.value}`} className="font-normal cursor-pointer">{opt.label}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Hover Effects</Label>
+                <p className="text-sm text-muted-foreground">Intensity of hover feedback on buttons and cards.</p>
+                <RadioGroup
+                  value={settings.hoverEffects}
+                  onValueChange={(v) => updateSettings({ hoverEffects: v as 'subtle' | 'medium' | 'none' })}
+                  className="flex flex-wrap gap-4 pt-2"
+                >
+                  {[
+                    { value: 'subtle', label: 'Subtle' },
+                    { value: 'medium', label: 'Medium' },
+                    { value: 'none', label: 'None' },
+                  ].map((opt) => (
+                    <div key={opt.value} className="flex items-center space-x-2">
+                      <RadioGroupItem value={opt.value} id={`hover-${opt.value}`} />
+                      <Label htmlFor={`hover-${opt.value}`} className="font-normal cursor-pointer">{opt.label}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div>
+                  <p className="font-medium">Reduce Motion</p>
+                  <p className="text-sm text-muted-foreground">Minimize motion for accessibility.</p>
+                </div>
+                <Switch
+                  checked={settings.reduceMotion}
+                  onCheckedChange={(checked) => updateSettings({ reduceMotion: checked })}
                 />
               </div>
             </CardContent>

@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import { Server, Cpu, HardDrive, Wifi, Activity } from 'lucide-react';
 import { serverMetrics } from '@/mock-data/analytics';
 import { Progress } from '@/components/ui/progress';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import WidgetCard from '@/components/cards/WidgetCard';
 
 export default function ServerStatusWidget() {
+  const anim = useAnimationConfig();
   const metrics = [
     {
       label: 'CPU Usage',
@@ -48,9 +50,9 @@ export default function ServerStatusWidget() {
           {metrics.map((metric, index) => (
             <motion.div
               key={metric.label}
-              initial={{ opacity: 0, x: -10 }}
+              initial={anim.enabled ? { opacity: 0, x: -10 } : false}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ ...anim.transition, delay: anim.enabled ? index * 0.03 : 0 }}
               className="space-y-1.5"
             >
               <div className="flex items-center justify-between">

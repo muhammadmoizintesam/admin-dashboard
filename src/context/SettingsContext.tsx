@@ -7,6 +7,8 @@ type FontSize = 'small' | 'medium' | 'large';
 type SidebarWidth = 'narrow' | 'default' | 'wide';
 type NavbarStyle = 'default' | 'compact';
 type NavigationMode = 'sidebar' | 'topbar';
+type AnimationSpeed = 'fast' | 'normal' | 'slow';
+type HoverEffects = 'subtle' | 'medium' | 'none';
 
 interface WidgetVisibility {
   revenueStats: boolean;
@@ -29,6 +31,9 @@ interface UISettings {
   navigationMode: NavigationMode;
   cardBorderRadius: number;
   animationsEnabled: boolean;
+  animationSpeed: AnimationSpeed;
+  hoverEffects: HoverEffects;
+  reduceMotion: boolean;
   widgetVisibility: WidgetVisibility;
   tableDensity: LayoutDensity;
   sidebarCollapsed: boolean;
@@ -44,6 +49,9 @@ const defaultSettings: UISettings = {
   navigationMode: 'sidebar',
   cardBorderRadius: 12,
   animationsEnabled: true,
+  animationSpeed: 'normal',
+  hoverEffects: 'none',
+  reduceMotion: false,
   widgetVisibility: {
     revenueStats: true,
     userGrowth: true,
@@ -123,6 +131,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       spacious: '4rem',
     };
     root.style.setProperty('--table-row-height', tableDensity[settings.tableDensity]);
+
+    // Animation settings (so Enable Animations and Advanced options actually apply)
+    root.setAttribute('data-animations', settings.animationsEnabled ? 'on' : 'off');
+    root.setAttribute('data-animation-speed', settings.animationSpeed);
+    root.setAttribute('data-hover-effects', settings.hoverEffects);
+    root.setAttribute('data-reduce-motion', settings.reduceMotion ? 'true' : 'false');
+
+    const speedDurations = { fast: '0.15s', normal: '0.25s', slow: '0.4s' };
+    root.style.setProperty('--animation-duration', speedDurations[settings.animationSpeed]);
   }, [settings]);
 
   const updateSettings = useCallback((updates: Partial<UISettings>) => {

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 interface ChartCardProps {
   title: string;
@@ -23,11 +24,12 @@ export default function ChartCard({
   className,
   index = 0,
 }: ChartCardProps) {
+  const anim = useAnimationConfig();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={anim.enabled ? { opacity: 0, y: 12 } : false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
+      transition={{ ...anim.transition, delay: anim.enabled ? index * 0.05 : 0 }}
     >
       <Card className={className}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

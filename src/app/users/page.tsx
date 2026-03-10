@@ -13,9 +13,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { getStatusColor } from '@/utils/helpers';
 import { useToast } from '@/hooks/use-toast';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
+  const anim = useAnimationConfig();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -23,32 +25,18 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { toast } = useToast();
 
-  // Animation variants
   const pageVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: anim.enabled ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 200,
-        damping: 20,
-        staggerChildren: 0.1,
-      },
+      transition: { staggerChildren: anim.enabled ? 0.05 : 0, delayChildren: anim.enabled ? 0.05 : 0 },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 300,
-        damping: 25,
-      },
-    },
+    hidden: anim.enabled ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 },
+    visible: { opacity: 1, y: 0, transition: anim.transition },
   };
 
   const [formData, setFormData] = useState({
@@ -68,44 +56,22 @@ export default function UsersPage() {
       header: 'User',
       sortable: true,
       render: (user) => (
-        <motion.div
-          className="flex items-center gap-3"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <motion.div
-            whileHover={{
-              scale: 1.1,
-              rotate: 5,
-              transition: { type: "spring" as const, stiffness: 300 }
-            }}
-            whileTap={{ scale: 0.95 }}
-          >
+        <div className="flex items-center gap-3">
+          <div>
             <Avatar className="w-8 h-8">
               <AvatarImage src={user.avatar} alt={user.name} />
               <AvatarFallback>{user.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
             </Avatar>
-          </motion.div>
-          <div>
-            <motion.p
-              className="font-medium"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              {user.name}
-            </motion.p>
-            <motion.p
-              className="text-xs text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              {user.email}
-            </motion.p>
           </div>
-        </motion.div>
+          <div>
+            <p className="font-medium">
+              {user.name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {user.email}
+            </p>
+          </div>
+        </div>
       ),
     },
     {
@@ -114,9 +80,9 @@ export default function UsersPage() {
       sortable: true,
       render: (user) => (
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={anim.enabled ? { opacity: 0, scale: 0.95 } : false}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
+          transition={anim.transition}
         >
           <Badge
             variant="outline"
@@ -138,10 +104,9 @@ export default function UsersPage() {
       sortable: true,
       render: (user) => (
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={anim.enabled ? { opacity: 0, scale: 0.95 } : false}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-          whileHover={{ scale: 1.05 }}
+          transition={anim.transition}
         >
           <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
         </motion.div>
@@ -261,17 +226,17 @@ export default function UsersPage() {
         <div>
           <motion.h1
             className="text-2xl font-bold tracking-tight"
-            initial={{ opacity: 0, y: -20 }}
+            initial={anim.enabled ? { opacity: 0, y: -10 } : false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={anim.transition}
           >
             Users
           </motion.h1>
           <motion.p
             className="text-muted-foreground"
-            initial={{ opacity: 0, y: -20 }}
+            initial={anim.enabled ? { opacity: 0, y: -10 } : false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={anim.transition}
           >
             Manage your team members and their roles.
           </motion.p>
@@ -294,15 +259,12 @@ export default function UsersPage() {
             { label: 'Delete', onClick: handleBulkDelete },
           ]}
           actions={
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <div>
               <Button onClick={() => setIsCreateOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add User
               </Button>
-            </motion.div>
+            </div>
           }
         />
       </motion.div>

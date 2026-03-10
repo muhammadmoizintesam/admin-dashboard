@@ -13,9 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { getStatusColor } from '@/utils/helpers';
 import { useToast } from '@/hooks/use-toast';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const anim = useAnimationConfig();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -198,7 +200,7 @@ export default function ProjectsPage() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>

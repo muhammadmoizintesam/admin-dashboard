@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { cn } from '@/utils/helpers';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 interface WidgetCardProps {
   title: string;
@@ -26,13 +27,14 @@ export default function WidgetCard({
   index = 0,
   noPadding = false,
 }: WidgetCardProps) {
+  const anim = useAnimationConfig();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={anim.enabled ? { opacity: 0, y: 12 } : false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
+      transition={{ ...anim.transition, delay: anim.enabled ? index * 0.05 : 0 }}
     >
-      <Card className={cn('hover:shadow-md transition-shadow', className)}>
+      <Card className={cn('transition-shadow duration-150 hover:shadow-sm', className)}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <div>
             <CardTitle className="text-base font-semibold">{title}</CardTitle>

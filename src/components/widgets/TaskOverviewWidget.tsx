@@ -6,9 +6,11 @@ import { ArrowRight, CheckCircle2, Clock, AlertCircle, ListTodo } from 'lucide-r
 import { tasks } from '@/mock-data/tasks';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import WidgetCard from '@/components/cards/WidgetCard';
 
 export default function TaskOverviewWidget() {
+  const anim = useAnimationConfig();
   const todoCount = tasks.filter((t) => t.status === 'To Do').length;
   const inProgressCount = tasks.filter((t) => t.status === 'In Progress').length;
   const reviewCount = tasks.filter((t) => t.status === 'Review').length;
@@ -74,9 +76,9 @@ export default function TaskOverviewWidget() {
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, y: 10 }}
+              initial={anim.enabled ? { opacity: 0, y: 10 } : false}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ ...anim.transition, delay: anim.enabled ? index * 0.03 : 0 }}
               className="flex items-center gap-3 p-3 rounded-lg bg-muted/50"
             >
               <div className={`p-2 rounded-lg ${stat.bgColor}`}>

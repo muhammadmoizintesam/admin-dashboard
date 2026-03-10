@@ -20,6 +20,7 @@ import {
 import { cn } from '@/utils/helpers';
 import { useTheme } from '@/context/ThemeContext';
 import { useSettings } from '@/context/SettingsContext';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { notifications as mockNotifications } from '@/mock-data/notifications';
@@ -37,6 +38,7 @@ export default function Navbar() {
 
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { settings, toggleSidebar } = useSettings();
+  const anim = useAnimationConfig();
   const { logout } = useAuth();
   const router = useRouter();
 
@@ -122,8 +124,9 @@ export default function Navbar() {
             <AnimatePresence>
               {searchOpen && searchQuery && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
+                  initial={anim.enabled ? { opacity: 0, y: -10 } : false}
                   animate={{ opacity: 1, y: 0 }}
+                  transition={anim.transition}
                   exit={{ opacity: 0, y: -10 }}
                   className="absolute top-full left-0 mt-2 w-80 rounded-lg border border-border bg-popover shadow-lg overflow-hidden"
                 >
@@ -198,8 +201,9 @@ export default function Navbar() {
             <AnimatePresence>
               {notificationsOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  initial={anim.enabled ? { opacity: 0, y: -10, scale: 0.95 } : false}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={anim.transition}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
                   className="absolute top-full right-0 mt-2 w-80 rounded-lg border border-border bg-popover shadow-lg overflow-hidden"
@@ -283,8 +287,9 @@ export default function Navbar() {
             <AnimatePresence>
               {profileOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  initial={anim.enabled ? { opacity: 0, y: -10, scale: 0.95 } : false}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={anim.transition}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
                   className="absolute top-full right-0 mt-2 w-56 rounded-lg border border-border bg-popover shadow-lg overflow-hidden"

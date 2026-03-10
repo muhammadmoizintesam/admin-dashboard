@@ -9,10 +9,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatRelativeTime, getStatusColor } from '@/utils/helpers';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 import WidgetCard from '@/components/cards/WidgetCard';
 
 export default function RecentUsersWidget() {
   const recentUsers = users.slice(0, 5);
+  const anim = useAnimationConfig();
 
   return (
     <WidgetCard
@@ -31,9 +33,9 @@ export default function RecentUsersWidget() {
         {recentUsers.map((user, index) => (
           <motion.div
             key={user.id}
-            initial={{ opacity: 0, x: -10 }}
+            initial={anim.enabled ? { opacity: 0, x: -10 } : false}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
+            transition={{ ...anim.transition, delay: anim.enabled ? index * 0.03 : 0 }}
             className="flex items-center justify-between"
           >
             <div className="flex items-center gap-3">

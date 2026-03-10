@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDateTime, cn } from '@/utils/helpers';
+import { useAnimationConfig } from '@/hooks/use-animation-config';
 
 const auditLogs = [
   { id: '1', action: 'User Login', user: 'admin@company.com', ip: '192.168.1.1', timestamp: '2024-01-15T10:30:00', severity: 'info', details: 'Successful login from Chrome browser' },
@@ -23,6 +24,7 @@ const auditLogs = [
 
 export default function AuditLogsPage() {
   const [severityFilter, setSeverityFilter] = useState('all');
+  const anim = useAnimationConfig();
 
   const getSeverityColor = (severity: string) => {
     const colors: Record<string, string> = {
@@ -44,7 +46,7 @@ export default function AuditLogsPage() {
   const filteredLogs = severityFilter === 'all' ? auditLogs : auditLogs.filter(log => log.severity === severityFilter);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={anim.enabled ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={anim.transition} className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem><BreadcrumbLink href="/">Dashboard</BreadcrumbLink></BreadcrumbItem>
